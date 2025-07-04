@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import os
-from config import HANGZHOU_METRO_LINES
+from config import METRO_LINES, LINE_NAME_TO_INDEX, LINE_NAME_TO_RELATION_ID
 
 class MetroLinePlotter:
     def __init__(self):
@@ -353,7 +353,7 @@ class MetroLinePlotter:
         
         return filename
 
-    def plot_from_json(self, json_filename, fig=None, ax=None, show_plot=True):
+    def plot_from_json(self, json_filename, fig=None, ax=None, alpha = 0.8, show_plot=True):
         """从JSON文件读取数据并绘制地铁线路图"""
         try:
             with open(json_filename, 'r', encoding='utf-8') as f:
@@ -411,7 +411,7 @@ class MetroLinePlotter:
             coords_array = np.array(line_points)
             ax.plot(coords_array[:, 0], coords_array[:, 1], 
                 color=line_color, linewidth=4, solid_capstyle='round',
-                alpha=0.8, zorder=1)
+                alpha=alpha, zorder=1)
         
         # 绘制车站
         for station in stations:
@@ -458,8 +458,13 @@ class MetroLinePlotter:
         
         return fig, ax
         
-    def plot_multiple_lines(self, json_filenames, fig=None, ax=None, show_plot=True):
-        """一次性绘制多条线路"""
+    def plot_multiple_lines(self, json_filenames, fig=None, ax=None, alpha=0.8, show_plot=True):
+        """一次性绘制多条线路
+        Args:
+            json_filenames: 线路信息 json 文件名列表
+            alpha: 不透明度
+            show_plot: 是否显示图形
+        """
         if not json_filenames:
             print("没有提供JSON文件")
             return fig, ax
@@ -467,7 +472,7 @@ class MetroLinePlotter:
         for i, filename in enumerate(json_filenames):
             # 最后一条线路时显示图形
             show = show_plot and (i == len(json_filenames) - 1)
-            fig, ax = self.plot_from_json(filename, fig, ax, show_plot=show)
+            fig, ax = self.plot_from_json(filename, fig, ax, alpha=alpha, show_plot=show)
             
             if fig is None or ax is None:
                 print(f"绘制 {filename} 失败")
@@ -508,7 +513,7 @@ class MetroLinePlotter:
         
         return segment_points
 
-    def plot_segment_from_json(self, json_filename, start_station, end_station, fig=None, ax=None, show_plot=True):
+    def plot_segment_from_json(self, json_filename, start_station, end_station, fig=None, ax=None, alpha=0.8, show_plot=True):
         """从JSON文件读取数据并绘制指定区间的地铁线路图"""
         try:
             with open(json_filename, 'r', encoding='utf-8') as f:
@@ -573,7 +578,7 @@ class MetroLinePlotter:
             coords_array = np.array(line_points)
             ax.plot(coords_array[:, 0], coords_array[:, 1], 
                 color=line_color, linewidth=4, solid_capstyle='round',
-                alpha=0.8, zorder=1)
+                alpha=alpha, zorder=1)
         
         # 绘制车站
         for station in stations:
@@ -620,7 +625,7 @@ class MetroLinePlotter:
         
         return fig, ax
 
-    def plot_multiple_segments(self, segment_configs, fig=None, ax=None, show_plot=True):
+    def plot_multiple_segments(self, segment_configs, fig=None, ax=None, alpha=0.8, show_plot=True):
         """绘制多个线路区间
         
         Args:
@@ -630,6 +635,7 @@ class MetroLinePlotter:
                     'start_station': '起始站名',
                     'end_station': '终点站名'
                 }
+            alpha: 不透明度
             show_plot: 是否显示图形
         """
         if not segment_configs:
@@ -648,8 +654,8 @@ class MetroLinePlotter:
             # 最后一个区间时显示图形
             show = show_plot and (i == len(segment_configs) - 1)
             fig, ax = self.plot_segment_from_json(
-                json_filename, start_station, end_station, 
-                fig, ax, show_plot=show
+                json_filename, start_station, end_station,
+                fig, ax, alpha=alpha, show_plot=show
             )
             
             if fig is None or ax is None:
@@ -662,9 +668,9 @@ class MetroLinePlotter:
 if __name__ == "__main__":
     plotter = MetroLinePlotter()
     
-    # 方法1: 处理完整线路
+    # 处理线路
     json_filenames = []
-    for line in HANGZHOU_METRO_LINES:
+    for line in METRO_LINES:
             filename = plotter.process_metro_line(relation_id=line['relation_id'])
             if filename:
                 json_filenames.append(filename)
@@ -672,33 +678,45 @@ if __name__ == "__main__":
     # 如果需要强制更新某条线路的缓存
     # json_filenames.append(plotter.process_metro_line(relation_id=13538220, force_update=True))
 
-    if json_filenames:
-        plotter.plot_multiple_lines(json_filenames, show_plot=True)
+    # 方法1: 绘制单条线路
+    # if json_filenames:
+    #     fig, ax = plotter.plot_from_json(json_filenames[LINE_NAME_TO_INDEX["line 3a"]], alpha = 0.8, show_plot=True)
 
-    # 方法2: 绘制完整线路
+    # 方法2: 绘制多条线路
     if json_filenames:
-        fig, ax = plotter.plot_multiple_lines(json_filenames, show_plot=False)
+        fig, ax = plotter.plot_multiple_lines(json_filenames, alpha = 0.1, show_plot=False)
     
     # 方法3: 绘制单个区间
-    # plotter.plot_segment_from_json(
-    #     json_filenames[0], 
-    #     start_station='西湖文化广场', 
-    #     end_station='古荡'
-    # )
+    # if json_filenames:
+    #     plotter.plot_segment_from_json(
+    #         json_filenames[LINE_NAME_TO_INDEX["line 3a"]], 
+    #         start_station='西湖文化广场', 
+    #         end_station='古荡',
+    #         fig=fig, ax=ax, alpha=0.8, show_plot=True
+    #     )
     
     # 方法4: 绘制多个区间
-    # if json_filenames:
-    #     segment_configs = [
-    #         {
-    #             'json_filename': json_filenames[2],
-    #             'start_station': '火车东站',
-    #             'end_station': '西湖文化广场'
-    #         },
-    #         {
-    #             'json_filename': json_filenames[0],
-    #             'start_station': '西湖文化广场',
-    #             'end_station': '古荡'
-    #         }
-    #         # 可以添加更多区间配置
-    #     ]
-    #     plotter.plot_multiple_segments(segment_configs, fig, ax, show_plot=True)
+    if json_filenames:
+        segment_configs = [
+            {
+                'json_filename': json_filenames[LINE_NAME_TO_INDEX["line 3a"]],
+                'start_station': '古荡',
+                'end_station': '西湖文化广场'
+            },
+            {
+                'json_filename': json_filenames[LINE_NAME_TO_INDEX["line 1"]],
+                'start_station': '西湖文化广场',
+                'end_station': '客运中心'
+            },
+            {
+                'json_filename': json_filenames[LINE_NAME_TO_INDEX["line 9"]],
+                'start_station': '客运中心',
+                'end_station': '余杭高铁站'
+            },
+            {
+                'json_filename': json_filenames[LINE_NAME_TO_INDEX["hanghai intercity"]],
+                'start_station': '临平南高铁站',
+                'end_station': '浙大国际校区'
+            }
+        ]
+        plotter.plot_multiple_segments(segment_configs, fig, ax, show_plot=True)

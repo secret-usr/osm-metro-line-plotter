@@ -1,4 +1,4 @@
-HANGZHOU_METRO_LINES = [
+METRO_LINES = [
     # 关系：1号线：萧山机场 -> 湘湖 (4627561)
     {
         'name': 'line 1',
@@ -85,3 +85,7 @@ HANGZHOU_METRO_LINES = [
         'relation_id': 17438392,
     }
 ]
+
+# 反向映射
+LINE_NAME_TO_INDEX = {line['name']: i for i, line in enumerate(METRO_LINES)}
+LINE_NAME_TO_RELATION_ID = {line['name']: line['relation_id'] for line in METRO_LINES}
