@@ -406,7 +406,7 @@ class MetroLinePlotter:
                     'lat': point['lat']
                 })
         
-        # 绘制线路（移除label参数）
+        # 绘制线路
         if line_points:
             coords_array = np.array(line_points)
             ax.plot(coords_array[:, 0], coords_array[:, 1], 
@@ -433,20 +433,32 @@ class MetroLinePlotter:
             # 获取当前坐标轴范围
             current_xlim = ax.get_xlim()
             current_ylim = ax.get_ylim()
-            
+
             # 计算新的范围
             new_min_lon = min(min(all_lons), current_xlim[0])
             new_max_lon = max(max(all_lons), current_xlim[1])
             new_min_lat = min(min(all_lats), current_ylim[0])
             new_max_lat = max(max(all_lats), current_ylim[1])
-            
-            # 添加边距
-            lon_margin = (new_max_lon - new_min_lon) * 0.05
-            lat_margin = (new_max_lat - new_min_lat) * 0.05
-            
-            ax.set_xlim(new_min_lon - lon_margin, new_max_lon + lon_margin)
-            ax.set_ylim(new_min_lat - lat_margin, new_max_lat + lat_margin)
-        
+
+            # 检查各个方向的扩展情况
+            lon_extended_left = new_min_lon < current_xlim[0]
+            lon_extended_right = new_max_lon > current_xlim[1]
+            lat_extended_bottom = new_min_lat < current_ylim[0]
+            lat_extended_top = new_max_lat > current_ylim[1]
+
+            # 计算基础边距
+            base_lon_margin = (new_max_lon - new_min_lon) * 0.05
+            base_lat_margin = (new_max_lat - new_min_lat) * 0.05
+
+            # 根据扩展情况决定各方向的边距
+            left_margin = base_lon_margin if lon_extended_left else 0
+            right_margin = base_lon_margin if lon_extended_right else 0
+            bottom_margin = base_lat_margin if lat_extended_bottom else 0
+            top_margin = base_lat_margin if lat_extended_top else 0
+
+            ax.set_xlim(new_min_lon - left_margin, new_max_lon + right_margin)
+            ax.set_ylim(new_min_lat - bottom_margin, new_max_lat + top_margin)
+
         # 只有在show_plot为True时才显示图形
         if show_plot:
             plt.tight_layout()
@@ -592,7 +604,7 @@ class MetroLinePlotter:
             #         xytext=(0, -10), textcoords='offset points',
             #         fontsize=8, ha='center', va='center')
         
-        # 更新坐标轴范围以包含新线路（与 plot_from_json 保持一致）
+        # 更新坐标轴范围以包含新线路
         all_lons = [p[0] for p in line_points]
         all_lats = [p[1] for p in line_points]
         
@@ -600,19 +612,31 @@ class MetroLinePlotter:
             # 获取当前坐标轴范围
             current_xlim = ax.get_xlim()
             current_ylim = ax.get_ylim()
-            
+
             # 计算新的范围
             new_min_lon = min(min(all_lons), current_xlim[0])
             new_max_lon = max(max(all_lons), current_xlim[1])
             new_min_lat = min(min(all_lats), current_ylim[0])
             new_max_lat = max(max(all_lats), current_ylim[1])
-            
-            # 添加边距
-            lon_margin = (new_max_lon - new_min_lon) * 0.05
-            lat_margin = (new_max_lat - new_min_lat) * 0.05
-            
-            ax.set_xlim(new_min_lon - lon_margin, new_max_lon + lon_margin)
-            ax.set_ylim(new_min_lat - lat_margin, new_max_lat + lat_margin)
+
+            # 检查各个方向的扩展情况
+            lon_extended_left = new_min_lon < current_xlim[0]
+            lon_extended_right = new_max_lon > current_xlim[1]
+            lat_extended_bottom = new_min_lat < current_ylim[0]
+            lat_extended_top = new_max_lat > current_ylim[1]
+
+            # 计算基础边距
+            base_lon_margin = (new_max_lon - new_min_lon) * 0.05
+            base_lat_margin = (new_max_lat - new_min_lat) * 0.05
+
+            # 根据扩展情况决定各方向的边距
+            left_margin = base_lon_margin if lon_extended_left else 0
+            right_margin = base_lon_margin if lon_extended_right else 0
+            bottom_margin = base_lat_margin if lat_extended_bottom else 0
+            top_margin = base_lat_margin if lat_extended_top else 0
+
+            ax.set_xlim(new_min_lon - left_margin, new_max_lon + right_margin)
+            ax.set_ylim(new_min_lat - bottom_margin, new_max_lat + top_margin)
         
         # 只有在show_plot为True时才显示图形
         if show_plot:
@@ -684,7 +708,7 @@ if __name__ == "__main__":
 
     # 方法2: 绘制多条线路
     if json_filenames:
-        fig, ax = plotter.plot_multiple_lines(json_filenames, alpha = 0.1, show_plot=False)
+        fig, ax = plotter.plot_multiple_lines(json_filenames, alpha = 0.01, show_plot=False)
     
     # 方法3: 绘制单个区间
     # if json_filenames:
