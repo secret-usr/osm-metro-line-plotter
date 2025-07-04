@@ -1,0 +1,14 @@
+# MACOS system files
+.DS_Store
+
+# JSON data files
+*.json
+
+# Python cache
+__pycache__/
+
+# Script only for drawing
+draw-only.py
+
+# Figures/images
+Figure_*
